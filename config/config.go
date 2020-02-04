@@ -34,13 +34,26 @@ type TSanPerfConfig struct {
 	Groups []TGroupConfig `yaml:"groups"`
 }
 
-func GetConfig(configPath string)(configFile *TSanPerfConfig){
+var SanPerfConfig = TSanPerfConfig{
+	Default: TDefaultSanPerfConfig{
+		Username: "",
+		Password: "",
+		Port: 8443,
+		Interval: 60,
+		Graphite: TGraphiteConfig{
+			Address: "0.0.0.0:2003",
+			Prefix: "storage.eseries",
+		},
+	},
+}
+
+func GetConfig(configPath string){//(configFile *TSanPerfConfig){
 	if configPath!="" {
 		buff, err := ioutil.ReadFile(configPath)
 		if err!=nil {
 			fmt.Println("Error while read config", err)
 		}
-		yaml.Unmarshal(buff, &configFile)
+		yaml.Unmarshal(buff, &SanPerfConfig)
 	}
-	return
+	//return
 }
