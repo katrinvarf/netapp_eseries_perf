@@ -26,15 +26,15 @@ type TGroupConfig struct {
 
 type TSanArray struct {
 	Name string `yaml:"name"`
-	Address string `yaml:"address"`
+	Address []string `yaml:"address"`
 }
 
 type TSanPerfConfig struct {
-	Default TDefaultSanPerfConfig
-	Groups []TGroupConfig
+	Default TDefaultSanPerfConfig `yaml:"default"`
+	Groups []TGroupConfig `yaml:"groups"`
 }
 
-func GetConfig(configPath string)(configFile *Config){
+func GetConfig(configPath string)(configFile *TSanPerfConfig){
 	if configPath!="" {
 		buff, err := ioutil.ReadFile(configPath)
 		if err!=nil {
@@ -42,4 +42,5 @@ func GetConfig(configPath string)(configFile *Config){
 		}
 		yaml.Unmarshal(buff, &configFile)
 	}
+	return
 }
