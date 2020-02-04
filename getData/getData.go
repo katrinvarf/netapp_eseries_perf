@@ -38,8 +38,8 @@ func GetAllData(Username string, Password string, DevicePort int, DeviceAddress 
 	for _, section := range sections{
 		if section=="Controller"{
 			fmt.Println(getSection(Username, Password, section, DevicePort, DeviceAddress, DeviceName, DeviceID, GroupName))
-			break
 		}
+		//fmt.Println(getSection(Username, Password, section, DevicePort, DeviceAddress, DeviceName, DeviceID, GroupName))
 	}
 }
 
@@ -60,8 +60,8 @@ func getSectionPerfData(Username string, Password string, SectionAPI string, Dev
 	return raw
 }
 
-func getSection(Username string, Password string, Section string, DevicePort int, DeviceAddress string, DeviceName string, DeviceID int, GroupName string) (result map[string]float64) {
-	result = make(map[string]float64)
+func getSection(Username string, Password string, Section string, DevicePort int, DeviceAddress string, DeviceName string, DeviceID int, GroupName string) (map[string]float64) {
+	result := make(map[string]float64)
 	var perf_data interface{}
 	switch Section{
 		case "Controller":
@@ -74,18 +74,18 @@ func getSection(Username string, Password string, Section string, DevicePort int
 					result[GroupName + "." + DeviceName + "." + Section + "." + Name + "." + metricName] = metricValue
 				}
 			}
-			return
+			return result
 		case "Drive":
 			perf_data = getSectionPerfData(Username, Password, "analysed-drive-statistics", DevicePort, DeviceAddress, DeviceName, DeviceID)
 			for _, item := range perf_data.([]interface{}){
 				Name := item.(map[string]interface{})["diskId"].(string)
-				for _, num := range []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12}{
+				for _, num := range []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 12}{
 					metricName := statisticName[num]
 					metricValue := item.(map[string]interface{})[statisticName[num]].(float64)
 					result[GroupName + "." + DeviceName + "." + Section + "." + Name + "." + metricName] = metricValue
 				}
 			}
-			return
+			return result
 		case "Interface":
 			perf_data = getSectionPerfData(Username, Password, "analysed-interface-statistics", DevicePort, DeviceAddress, DeviceName, DeviceID)
 			for _, item := range perf_data.([]interface{}){
@@ -96,18 +96,16 @@ func getSection(Username string, Password string, Section string, DevicePort int
 					result[GroupName + "." + DeviceName + "." + Section + "." + Name + "." + metricName] = metricValue
 				}
 			}
-			return
+			return result
 		case "System":
 			perf_data = getSectionPerfData(Username, Password, "analysed-system-statistics", DevicePort, DeviceAddress, DeviceName, DeviceID)
-			for _, item := range perf_data.([]interface{}){
-				Name := item.(map[string]interface{})["storageSystemName"].(string)
-				for _, num := range []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}{
-					metricName := statisticName[num]
-					metricValue := item.(map[string]interface{})[statisticName[num]].(float64)
-					result[GroupName + "." + DeviceName + "." + Section + "." + Name + "." + metricName] = metricValue
-				}
+			Name := perf_data.(map[string]interface{})["storageSystemName"].(string)
+			for _, num := range []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}{
+				metricName := statisticName[num]
+				metricValue := perf_data.(map[string]interface{})[statisticName[num]].(float64)
+				result[GroupName + "." + DeviceName + "." + Section + "." + Name + "." + metricName] = metricValue
 			}
-			return
+			return result
 		case "Volume":
 			perf_data = getSectionPerfData(Username, Password, "analysed-volume-statistics", DevicePort, DeviceAddress, DeviceName, DeviceID)
 			for _, item := range perf_data.([]interface{}){
@@ -118,15 +116,15 @@ func getSection(Username string, Password string, Section string, DevicePort int
 					result[GroupName + "." + DeviceName + "." + Section + "." + Name + "." + metricName] = metricValue
 				}
 			}
-			return
+			return result
 		case "Pool":
 			perf_data = getSectionPerfData(Username, Password, "", DevicePort, DeviceAddress, DeviceName, DeviceID)
 			for _, num := range []int{13, 14, 15}{
 				metricName := statisticName[num]
-				metricValue := perf_data.(map[string]interface{})[statisticName[num]].(float64)
+				metricValue, _ := strconv.ParseFloat(perf_data.(map[string]interface{})[statisticName[num]].(string), 64)
 				result[GroupName + "." + DeviceName + "." + Section + "." + metricName] = metricValue
 			}
-			return
+			return result
 	}
-	return
+	return result
 }
