@@ -1,11 +1,12 @@
 package getData
 
 import(
-	"fmt"
+	//"fmt"
 	"net/http"
 	"io/ioutil"
 	"crypto/tls"
 	"strconv"
+	"../sendData"
 	"encoding/json"
 )
 
@@ -36,10 +37,12 @@ var statisticName =[]string{
 
 func GetAllData(Username string, Password string, DevicePort int, DeviceAddress string, DeviceName string, DeviceID int, GroupName string){
 	for _, section := range sections{
-		if section=="Controller"{
+		go sendData.SendObjectPerfs(getSection(Username, Password, section, DevicePort, DeviceAddress, DeviceName, DeviceID, GroupName))
+		/*if section=="Pool"{
 			fmt.Println(getSection(Username, Password, section, DevicePort, DeviceAddress, DeviceName, DeviceID, GroupName))
-		}
+		}*/
 		//fmt.Println(getSection(Username, Password, section, DevicePort, DeviceAddress, DeviceName, DeviceID, GroupName))
+
 	}
 }
 
