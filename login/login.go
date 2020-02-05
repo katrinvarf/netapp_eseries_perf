@@ -9,7 +9,7 @@ import(
 	"crypto/tls"
 )
 
-func Login(Username string, Password string, Address string, Port int)(result bool){
+func Login(Username string, Password string, Address string, Port int) bool{
 	urlString := "https://" + Address + ":" + strconv.Itoa(Port) + "/devmgr/v2/storage-systems"
 	//отключение проверки безопасности для client
 	tr := &http.Transport{
@@ -34,11 +34,12 @@ func Login(Username string, Password string, Address string, Port int)(result bo
 	buf, err = ioutil.ReadAll(resp.Body)
 	var raw interface{}
 	json.Unmarshal(buf, &raw)
+	result := true
 	if raw==nil{
 		//fmt.Println("Error Unauthorized")
-		result = true
+		result = false
 	}
-	return
+	return result
 	//fmt.Println(string(buf))
 	//fmt.Println(raw.([]interface{})[0].(map[string]interface{})["id"])
 
