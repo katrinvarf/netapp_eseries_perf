@@ -32,28 +32,29 @@ type TSanArray struct {
 type TSanPerfConfig struct {
 	Default TDefaultSanPerfConfig `yaml:"default"`
 	Groups []TGroupConfig `yaml:"groups"`
+	Loggers []TLoggingConfig `yaml:"logging"`
 }
 
-var SanPerfConfig = TSanPerfConfig{
-	Default: TDefaultSanPerfConfig{
-		Username: "",
-		Password: "",
-		Port: 8443,
-		Interval: 60,
-		Graphite: TGraphiteConfig{
-			Address: "0.0.0.0:2003",
-			Prefix: "storage.eseries",
-		},
-	},
+type TLoggingConfig struct {
+	Loggername string `yaml:"logger"`
+	File string `yaml:"file"`
+	Level string `yaml:"level"`
+	Encoding string `yaml:"encoding"`
 }
 
-func GetConfig(configPath string){//(configFile *TSanPerfConfig){
-	if configPath!="" {
-		buff, err := ioutil.ReadFile(configPath)
-		if err!=nil {
-			fmt.Println("Error while read config", err)
-		}
-		yaml.Unmarshal(buff, &SanPerfConfig)
+var SanPerfConfig = TSanPerfConfig{}
+
+func GetConfig(configPath string) (err error){
+	var buff []byte
+	buff, err = ioutil.ReadFile(configPath)
+	if err!=nil{
+		fmt.Println("Failed to read config", err)
+		return
 	}
-	//return
+	err = yaml.Unmarshal(buff, &SanPerfConfig)
+	if err!=nil{
+		fmt.Println("Failed to decode document", err)
+		return
+	}
+	return nil
 }

@@ -1,19 +1,21 @@
 package sendData
 
 import(
-	"fmt"
 	"gopkg.in/fgrosse/graphigo.v2"
+	"github.com/sirupsen/logrus"
 	"../config"
 )
 
-func SendObjectPerfs(PerfMap map[string]float64){
+func SendObjectPerfs(log *logrus.Logger, PerfMap map[string]float64){
 	Connection := graphigo.NewClient(config.SanPerfConfig.Default.Graphite.Address)
 	Connection.Prefix = config.SanPerfConfig.Default.Graphite.Prefix
 	Connection.Connect()
 	for name, value := range PerfMap{
 		err := Connection.Send(graphigo.Metric{Name: name, Value: value})
 		if err!=nil{
-			fmt.Println(err)
+			log.Warning("Failed to send metric: ", name, " = ", value, " :Error: ", err)
+			continue
 		}
+		log.Debug("Metric sent successfully: ", name, " = ", value)
 	}
 }

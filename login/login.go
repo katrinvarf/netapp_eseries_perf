@@ -1,46 +1,50 @@
 package login
 
 import(
-	"fmt"
 	"strconv"
 	"net/http"
 	"encoding/json"
 	"io/ioutil"
 	"crypto/tls"
+	"errors"
+	"github.com/sirupsen/logrus"
 )
 
-func Login(Username string, Password string, Address string, Port int) bool{
+func Login(log *logrus.Logger, Username string, Password string, Address string, Port int) error{
 	urlString := "https://" + Address + ":" + strconv.Itoa(Port) + "/devmgr/v2/storage-systems"
 	//отключение проверки безопасности для client
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
-
 	request, err := http.NewRequest("GET", urlString, nil)
 	if err!=nil {
-		fmt.Println(err)
+		log.Warning("Failed to create new http request: Error: ", err)
+		return err
 	}
-	//Username = "ghjf"
+
 	request.SetBasicAuth(Username, Password)
 	resp, err := client.Do(request)
 	if err!=nil {
-		fmt.Println(err)
+		log.Warning("Failed to do client request: Error: ", err)
+		return err
 	}
 
 	defer resp.Body.Close()
 
 	var buf []byte
 	buf, err = ioutil.ReadAll(resp.Body)
+	if err!=nil{
+		log.Warning("Failed to read response body: Error: ", err)
+		return err
+	}
 	var raw interface{}
 	json.Unmarshal(buf, &raw)
-	result := true
 	if raw==nil{
-		//fmt.Println("Error Unauthorized")
-		result = false
+		err = errors.New("login: wrong username or password")
+		log.Warning("Failed to authorize user: Error: ", err)
+		return err
 	}
-	return result
-	//fmt.Println(string(buf))
-	//fmt.Println(raw.([]interface{})[0].(map[string]interface{})["id"])
-
+	log.Debug("Successful login; address: ", Address)
+	return nil
 }

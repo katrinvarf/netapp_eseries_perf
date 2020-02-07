@@ -7,48 +7,78 @@ import (
 	"./getData"
 	"time"
 	"runtime"
-	"fmt"
+	"github.com/sirupsen/logrus"
+	"github.com/snowzach/rotatefilehook"
+	"os"
 )
 
 func main(){
 	var configPath string
 	flag.StringVar(&configPath, "config", "", "Path to the config file")
 	flag.Parse()
-	config.GetConfig(configPath)
-	DeviceID := 1
+	log := logrus.New()
+
+	if err:=config.GetConfig(configPath); err!=nil{
+		log.Fatal("Failed to get config file: Error: ", err)
+		return
+	}
+	if err:=initLogger(log); err!=nil{
+		log.Warning("Failed to initiate log file: Error: ", err)
+	}
+
 	runtime.Gosched()
-	runtime.GOMAXPROCS(3)
-	//fmt.Println(runtime.NumCPU())
+	DeviceID := 1
+
 	for{
-		//t1 := time.Now().UnixNano()
 		for i:=0; i<len(config.SanPerfConfig.Groups); i++{
 			for j:=0; j<len(config.SanPerfConfig.Groups[i].Arrays); j++{
-				DeviceAddress := checkAccessAd(config.SanPerfConfig.Default.Username, config.SanPerfConfig.Default.Password, config.SanPerfConfig.Groups[i].Arrays[j].Address, config.SanPerfConfig.Default.Port)
-				if DeviceAddress!=""{
-					go worker(config.SanPerfConfig.Default.Username, config.SanPerfConfig.Default.Password, config.SanPerfConfig.Default.Port, DeviceAddress, config.SanPerfConfig.Groups[i].Arrays[j].Name, DeviceID, config.SanPerfConfig.Groups[i].Groupname)
-					fmt.Println("Send data")
+				DeviceAddress, err := checkAccessAd(log, config.SanPerfConfig.Default.Username, config.SanPerfConfig.Default.Password, config.SanPerfConfig.Groups[i].Arrays[j].Address, config.SanPerfConfig.Default.Port)
+				if err!=nil{
+					log.Warning("Failed to connect to device: ", config.SanPerfConfig.Groups[i].Arrays[j].Name, " :Error: ", err)
+					break
 				}
+				log.Debug("Successful connect to address: ", DeviceAddress)
+					go getData.GetAllData(log, config.SanPerfConfig.Default.Username, config.SanPerfConfig.Default.Password, config.SanPerfConfig.Default.Port, DeviceAddress, config.SanPerfConfig.Groups[i].Arrays[j].Name, DeviceID, config.SanPerfConfig.Groups[i].Groupname)
 			}
 		}
-		//t2 := time.Now().UnixNano()
+
 		time.Sleep(time.Second*time.Duration(config.SanPerfConfig.Default.Interval))
-		fmt.Println("Sleep")
-		//fmt.Println(float64(t2 - t1) / 1000000.0)
 	}
 }
 
-func worker(Username string, Password string, Port int, Address string, DeviceName string, DeviceID int, GroupName string){
-	getData.GetAllData(Username, Password, Port, Address, DeviceName, DeviceID, GroupName)
+func initLogger(log *logrus.Logger) (err error){
+	logLevels := map[string]logrus.Level{"trace": logrus.TraceLevel, "debug": logrus.DebugLevel, "info": logrus.InfoLevel, "warn": logrus.WarnLevel, "error": logrus.ErrorLevel, "fatal": logrus.FatalLevel, "panic": logrus.PanicLevel}
+	formatters := map[string]logrus.Formatter{"json": &logrus.JSONFormatter{TimestampFormat: "02-01-2006 15:04:05"}, "text": &logrus.TextFormatter{TimestampFormat: "02-01-2006 15:04:05", FullTimestamp: true}}
+	log.SetLevel(logLevels[config.SanPerfConfig.Loggers[0].Level])
+	log.SetOutput(os.Stdout)
+	log.SetFormatter(formatters[config.SanPerfConfig.Loggers[0].Encoding])
+
+	var rotateFileHook logrus.Hook
+	rotateFileHook, err = rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
+		Filename: config.SanPerfConfig.Loggers[1].File,
+		MaxSize: 50, //megabytes
+		MaxBackups: 3,
+		MaxAge: 28, //days
+		Level: logLevels[config.SanPerfConfig.Loggers[1].Level],
+		Formatter: formatters[config.SanPerfConfig.Loggers[1].Encoding],
+	})
+	if err!=nil{
+		log.Warning("Failed to initialize file rotate hook: Error: ", err)
+		return
+	}
+	log.AddHook(rotateFileHook)
+	return nil
 }
 
-func checkAccessAd(Username string, Password string, Addresses []string, Port int)(DeviceAddress string){
+func checkAccessAd(log *logrus.Logger, Username string, Password string, Addresses []string, Port int)(DeviceAddress string, err error){
 	for _, address := range Addresses{
-		if login.Login(Username, Password, address, Port){
-			DeviceAddress = address
-			return
+		if err=login.Login(log, Username, Password, address, Port); err!=nil{
+			log.Debug("Failed to connect to address: ", address, " :Error: ", err)
+			continue
 		}
+		DeviceAddress = address
+		return DeviceAddress, nil
 	}
-	return
+	return DeviceAddress, err
 }
-
 
