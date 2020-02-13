@@ -23,9 +23,10 @@ func main(){
 		log.Fatal("Failed to get config file: Error: ", err)
 		return
 	}
-	if err:=initLogger(log); err!=nil{
+	/*if err:=initLogger(log); err!=nil{
 		log.Warning("Failed to initiate log file: Error: ", err)
-	}
+	}*/
+	setValuesLogrus(log, logLevels[config.SanPerfConfig.Loggers[0].Level], os.Stdout, formatters[config.SanPerfConfig.Loggers[0].Encoding])
 
 	runtime.Gosched()
 	DeviceID := 1
