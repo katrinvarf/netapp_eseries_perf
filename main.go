@@ -26,6 +26,7 @@ func main(){
 	/*if err:=initLogger(log); err!=nil{
 		log.Warning("Failed to initiate log file: Error: ", err)
 	}*/
+	//test
 	setValuesLogrus(log, logLevels[config.SanPerfConfig.Loggers[0].Level], os.Stdout, formatters[config.SanPerfConfig.Loggers[0].Encoding])
 
 	runtime.Gosched()
