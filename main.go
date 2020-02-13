@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"./config"
-	"./login"
-	"./getData"
+	"github.com/katrinvarf/san_perf/config"
+	"github.com/katrinvarf/san_perf/login"
+	"github.com/katrinvarf/san_perf/getData"
 	"time"
 	"runtime"
 	"github.com/sirupsen/logrus"

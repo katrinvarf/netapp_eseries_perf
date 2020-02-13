@@ -1,0 +1,56 @@
+default:
+ username: "monitor"
+ password: "h(eW-34sQ))"
+ port: 8443
+ interval: 60
+ graphite:
+  address: "10.43.25.100:2003"
+  prefix: "storage.eseries"
+groups:
+ - groupname: "EGRN"
+   arrays:
+   - name: "i89-s3n1e2800-0259"
+     address: 
+      - "172.31.173.78"
+      - "172.31.173.79"
+   - name: "i89-s3n2e2800-0279"
+     address:
+      - "172.31.173.81"
+      - "172.31.173.82"  
+   - name: "i89-s3n3e2800-0270"
+     address:
+      - "172.31.173.84"
+      - "172.31.173.85"
+   - name: "i89-s3n4e2800-0276"
+     address:
+      - "172.31.173.87"
+      - "172.31.173.88"
+   - name: "i89-s3n5e2800-0265"
+     address:
+      - "172.31.173.90"
+      - "172.31.173.91"
+   - name: "i89-s3n6e2800-0263"
+     address:
+      - "172.31.173.93"
+      - "172.31.173.94"
+   - name: "i89-s3n7e2800-0262"
+     address:
+      - "172.31.173.96"
+      - "172.31.173.97"
+   - name: "i89-s3n8e2800-0267"
+     address:
+      - "172.31.173.99"
+      - "172.31.173.100"
+   - name: "i89-s3n9e2800-0261"
+     address:
+      - "172.31.173.102"
+      - "172.31.173.103"
+logging:
+ - logger: "CONSOLE"
+   file: "stdout"
+   level: "debug"
+   encoding: "text"
+ - logger: "FILE"
+   file: "carbonapi.log"
+   level: "info"
+   encoding: "json"
