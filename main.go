@@ -11,6 +11,7 @@ import (
 	"github.com/snowzach/rotatefilehook"
 	"os"
 	"io"
+//	"fmt"
 )
 
 func main(){
@@ -26,8 +27,49 @@ func main(){
 	/*if err:=initLogger(log); err!=nil{
 		log.Warning("Failed to initiate log file: Error: ", err)
 	}*/
-	//test
-	setValuesLogrus(log, logLevels[config.SanPerfConfig.Loggers[0].Level], os.Stdout, formatters[config.SanPerfConfig.Loggers[0].Encoding])
+	logLevels := map[string]logrus.Level{"trace": logrus.TraceLevel, "debug": logrus.DebugLevel, "info": logrus.InfoLevel, "warn": logrus.WarnLevel, "error": logrus.ErrorLevel, "fatal": logrus.FatalLevel, "panic": logrus.PanicLevel}
+	formatters := map[string]logrus.Formatter{"json": &logrus.JSONFormatter{TimestampFormat: "02-01-2006 15:04:05"}, "text": &logrus.TextFormatter{TimestampFormat: "02-01-2006 15:04:05", FullTimestamp: true}}
+	/*if len(config.SanPerfConfig.Loggers)==1{
+		if config.SanPerfConfig.Loggers[0].Loggername=="FILE"{
+			//var file io.Writer
+			file, err  := os.OpenFile(config.SanPerfConfig.Loggers[0].File, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+			defer file.Close()
+			if err!=nil{
+				log.Warning(err)
+			}
+			setValuesLogrus(log, logLevels[config.SanPerfConfig.Loggers[0].Level], file, formatters[config.SanPerfConfig.Loggers[0].Encoding])
+		}else{
+			setValuesLogrus(log, logLevels[config.SanPerfConfig.Loggers[0].Level], os.Stdout, formatters[config.SanPerfConfig.Loggers[0].Encoding])
+		}
+	} else if len(config.SanPerfConfig.Loggers)==2{
+		file, _  := os.OpenFile(config.SanPerfConfig.Loggers[0].File, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		defer file.Close()
+		mw := io.MultiWriter(os.Stdout, file)
+		setValuesLogrus(log, logLevels[config.SanPerfConfig.Loggers[0].Level], mw, formatters[config.SanPerfConfig.Loggers[0].Encoding])
+	}*/
+	var writers []io.Writer
+	var level logrus.Level
+	var format logrus.Formatter
+	for i, _ := range(config.SanPerfConfig.Loggers){
+		if config.SanPerfConfig.Loggers[i].Loggername=="FILE"{
+			file, err  := os.OpenFile(config.SanPerfConfig.Loggers[i].File, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+			if err!=nil{
+				log.Warning("Failed to initialize log file: Error: ", err)
+			}
+			defer file.Close()
+			writers = append(writers, file)
+			level = logLevels[config.SanPerfConfig.Loggers[i].Level]
+			format = formatters[config.SanPerfConfig.Loggers[i].Encoding]
+		} else {
+			writers = append(writers, os.Stdout)
+			level = logLevels[config.SanPerfConfig.Loggers[i].Level]
+			format = formatters[config.SanPerfConfig.Loggers[i].Encoding]
+		}
+	}
+	if len(writers)!=0{
+		mw := io.MultiWriter(writers...)
+		setValuesLogrus(log, level, mw, format)
+	}
 
 	runtime.Gosched()
 	DeviceID := 1
@@ -53,7 +95,7 @@ func initLogger(log *logrus.Logger) (err error){
 	logLevels := map[string]logrus.Level{"trace": logrus.TraceLevel, "debug": logrus.DebugLevel, "info": logrus.InfoLevel, "warn": logrus.WarnLevel, "error": logrus.ErrorLevel, "fatal": logrus.FatalLevel, "panic": logrus.PanicLevel}
 	formatters := map[string]logrus.Formatter{"json": &logrus.JSONFormatter{TimestampFormat: "02-01-2006 15:04:05"}, "text": &logrus.TextFormatter{TimestampFormat: "02-01-2006 15:04:05", FullTimestamp: true}}
 
-	if len(config.SanPerfConfig.Loggers)==2{
+	/*if len(config.SanPerfConfig.Loggers)==2{
 		setValuesLogrus(log, logLevels[config.SanPerfConfig.Loggers[0].Level], os.Stdout, formatters[config.SanPerfConfig.Loggers[0].Encoding])
 		var rotateFileHook logrus.Hook
 		rotateFileHook, err = rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
@@ -77,7 +119,12 @@ func initLogger(log *logrus.Logger) (err error){
 			}
 			setValuesLogrus(log, logLevels[config.SanPerfConfig.Loggers[0].Level], file, formatters[config.SanPerfConfig.Loggers[0].Encoding])
 		}
-	}
+	}*/
+	//setValuesLogrus(log, logLevels[config.SanPerfConfig.Loggers[0].Level], os.Stdout, formatters[config.SanPerfConfig.Loggers[0].Encoding])
+	var rotateFileHook logrus.Hook
+	rotateFileHook, err = rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
+		Filename: config.SanPerfConfig.Loggers[0].File, MaxSize: 50, MaxBackups: 3, MaxAge: 28, Level: logLevels[config.SanPerfConfig.Loggers[0].Level], Formatter: formatters[config.SanPerfConfig.Loggers[0].Encoding],})
+	log.AddHook(rotateFileHook)
 
 	if err!=nil{
 		log.Warning("Failed to initialize file rotate hook: Error: ", err)
