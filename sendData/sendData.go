@@ -3,7 +3,7 @@ package sendData
 import(
 	"gopkg.in/fgrosse/graphigo.v2"
 	"github.com/sirupsen/logrus"
-	"github.com/katrinvarf/san_perf/config"
+	"github.com/katrinvarf/netapp_eseries_perf/config"
 )
 
 func SendObjectPerfs(log *logrus.Logger, PerfMap map[string]float64){

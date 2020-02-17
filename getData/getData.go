@@ -5,7 +5,7 @@ import(
 	"io/ioutil"
 	"crypto/tls"
 	"strconv"
-	"github.com/katrinvarf/san_perf/sendData"
+	"github.com/katrinvarf/netapp_eseries_perf/sendData"
 	"encoding/json"
 	"github.com/sirupsen/logrus"
 )
