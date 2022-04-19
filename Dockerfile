@@ -1,7 +1,7 @@
 FROM golang:alpine as builder
 
 RUN apk --no-cache add git
-RUN go get -u github.com/katrinvarf/netapp_eseries_perf
+RUN go install github.com/katrinvarf/netapp_eseries_perf@23880a8
 
 FROM alpine:latest
 
