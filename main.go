@@ -55,7 +55,7 @@ func main(){
 	for{
 		for i:=0; i<len(config.SanPerfConfig.Groups); i++{
 			for j:=0; j<len(config.SanPerfConfig.Groups[i].Arrays); j++{
-				DeviceAddress, err := checkAccessAd(log, config.SanPerfConfig.Default.Username, config.SanPerfConfig.Default.Password, config.SanPerfConfig.Groups[i].Arrays[j].Address, config.SanPerfConfig.Default.Port)
+				DeviceAddress, err := checkAccessAd(log, config.SanPerfConfig.Default.Username, config.SanPerfConfig.Default.Password, config.SanPerfConfig.Groups[i].Arrays[j].Address, config.SanPerfConfig.Default.Port, config.SanPerfConfig.Default.Timeout)
 				if err!=nil{
 					log.Warning("Failed to connect to device: ", config.SanPerfConfig.Groups[i].Arrays[j].Name, " :Error: ", err)
 					continue
@@ -75,9 +75,9 @@ func setValuesLogrus(log *logrus.Logger, level logrus.Level, output io.Writer, f
 	log.SetFormatter(formatter)
 }
 
-func checkAccessAd(log *logrus.Logger, Username string, Password string, Addresses []string, Port int)(DeviceAddress string, err error){
+func checkAccessAd(log *logrus.Logger, Username string, Password string, Addresses []string, Port int, Timeout int)(DeviceAddress string, err error){
 	for _, address := range Addresses{
-		if err=login.Login(log, Username, Password, address, Port); err!=nil{
+		if err=login.Login(log, Username, Password, address, Port, Timeout); err!=nil{
 			log.Debug("Failed to connect to address: ", address, " :Error: ", err)
 			continue
 		}
