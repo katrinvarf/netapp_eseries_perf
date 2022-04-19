@@ -16,6 +16,7 @@ type TDefaultSanPerfConfig struct{
 	Password string `yaml:"password"`
 	Port int `yaml:"port"`
 	Interval int `yaml:"interval"`
+	Timeout int `yaml:"timeout"`
 	Graphite TGraphiteConfig `yaml:"graphite"`
 }
 

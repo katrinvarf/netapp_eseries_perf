@@ -8,15 +8,16 @@ import(
 	"crypto/tls"
 	"errors"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
-func Login(log *logrus.Logger, Username string, Password string, Address string, Port int) error{
+func Login(log *logrus.Logger, Username string, Password string, Address string, Port int, Timeout int) error{
 	urlString := "https://" + Address + ":" + strconv.Itoa(Port) + "/devmgr/v2/storage-systems"
 	//отключение проверки безопасности для client
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	client := &http.Client{Transport: tr}
+	client := &http.Client{Transport: tr, Timeout: time.Duration(Timeout) * time.Second}
 	request, err := http.NewRequest("GET", urlString, nil)
 	if err!=nil {
 		log.Warning("Failed to create new http request: Error: ", err)
